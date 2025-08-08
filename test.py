@@ -26,23 +26,33 @@ class FileFolderSelector(QWidget):
         denoiser_btn = QPushButton("Run Denoiser")
         denoiser_btn.clicked.connect(self.denoise)
 
+        self.imagelayout = QLabel("No Image Denoised")
+        self.imagelayout.setScaledContents(True)
+
         layout.addWidget(file_btn)
         layout.addWidget(self.file_label)
         layout.addWidget(denoiser_btn)
+        layout.addWidget(self.imagelayout)
 
         self.setLayout(layout)
 
     def select_file(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Select File")
-        if file_path:
-            self.file_path = file_path
-            file_path = self.file_label.setText(f"File: {file_path}")
+        # file_path, _ = QFileDialog.getOpenFileName(self, "Select File")
+        file_path = '/Users/vicpi/Documents/GitHub/AUMCPRep/MATLAB/noisy.jpg'
+        # if file_path:
+        #     self.file_path = file_path
+        #     file_path = self.file_label.setText(f"File: {file_path}")
+        self.file_path = file_path
+        file_path = self.file_label.setText(f"File: {file_path}")
 
     def denoise(self):
         if self.file_path:
             eng = matlab.engine.start_matlab()
+            eng.cd(r'/Users/vicpi/Documents/GitHub/AUMCPRep/MATLAB', nargout=0)
+            eng.addpath(r'/Users/vicpi/Documents/GitHub/AUMCPRep/MATLAB', nargout=0)
+            print(self.file_path)
             result = eng.denoise(self.file_path, nargout=1)
-            self.file_label.setText(f"Denoised: {result}")
+            self.file_label.setText(f"Denoised:")
             eng.quit()
             image = np.array(result)
             h, w = image.shape
@@ -50,12 +60,8 @@ class FileFolderSelector(QWidget):
             q_img = QImage(image.tobytes(), w, h, bytes_per_line, QImage.Format.Format_Grayscale8)
 
             # Convert to QPixmap and show
-
-            label = QLabel(self)
             pixmap = QPixmap.fromImage(q_img)
-            label.setPixmap(pixmap)
-            self.layout().addWidget(label)
-            self.resize(pixmap.width(), pixmap.height())
+            self.imagelayout.setPixmap(pixmap)
 
 
 
